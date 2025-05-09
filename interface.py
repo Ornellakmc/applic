@@ -41,6 +41,25 @@ def appliquer_filtre(filtre):
         indice_historique += 1
         afficher_image()
 
+def appliquer_fusion():
+    global photo_affichee, photo_secondaire, historique, indice_historique
+    if photo_affichee and photo_secondaire:
+        image1 = photo_affichee.copy()
+        image2 = photo_secondaire.copy()
+
+        # Redimensionner si nécessaire
+        if image1.size != image2.size:
+            image2 = image2.resize(image1.size)
+
+        resultat = filtre_fusion(image1, image2)  # Assure-toi que cette fonction existe dans filtres.py
+        photo_affichee = resultat
+        historique = historique[:indice_historique + 1]
+        historique.append(photo_affichee.copy())
+        indice_historique += 1
+        afficher_image()
+    else:
+        messagebox.showwarning("Fusion impossible", "Les deux images doivent être chargées.")
+
 def annuler():
     global indice_historique, photo_affichee
     if indice_historique > 0:
@@ -84,16 +103,19 @@ def ouvrir_image():
         afficher_image()
 
 def charger_image_par_defaut():
-    global photo_originale, photo_affichee, historique, indice_historique
-    chemin = "images/img.jpg"
-    if os.path.exists(chemin):
-        photo_originale = Image.open(chemin).convert("RGB")
+    global photo_originale, photo_affichee, photo_secondaire, historique, indice_historique
+    chemin1 = "images/img.jpg"
+    chemin2 = "images/img2.jpg"
+    if os.path.exists(chemin1) and os.path.exists(chemin2):
+        photo_originale = Image.open(chemin1).convert("RGB")
+        photo_secondaire = Image.open(chemin2).convert("RGB")
         photo_affichee = photo_originale.copy()
         historique = [photo_affichee.copy()]
         indice_historique = 0
         afficher_image()
     else:
-        print("Aucune image par défaut trouvée.")
+        print("Les images img.jpg et img2.jpg doivent être présentes dans le dossier 'images/'.")
+
 
 def charger_une_seconde_image():
     global photo_secondaire
@@ -163,7 +185,7 @@ def lancer_interface():
     filtre_menu.add_command(label="Contraste", command=lambda: appliquer_filtre(filtre_contraste))
     filtre_menu.add_command(label="Flou Gaussien", command=lambda: appliquer_filtre(filtre_flou_gaussien))
     filtre_menu.add_command(label="Détection de Bords", command=lambda: appliquer_filtre(filtre_detection_bords))
-    filtre_menu.add_command(label="Fusion d'Images", command=filtre_fusion)
+    filtre_menu.add_command(label="Fusion d'Images", command=lambda: appliquer_fusion())
     menu.add_cascade(label="Filtres", menu=filtre_menu)
 
     # Zone d'affichage de l'image
