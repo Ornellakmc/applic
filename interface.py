@@ -252,3 +252,4 @@ def correction_contraste(valeur):
         contraste=np.clip(contraste, 0,255).astype(np.uint8)
         photo_affichee=Image.fromarray(contraste)
         afficher_image()
+        
