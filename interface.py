@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
+import numpy as np
 import os
 from filtres import (
     filtre_flou_uniforme,
@@ -20,6 +21,8 @@ photo_secondaire = None
 historique = []
 indice_historique = -1
 image_label = None
+slider_luminosite = None
+slider_contraste = None
 
 def afficher_image():
     global image_label, photo_affichee
@@ -53,11 +56,14 @@ def retablir():
         afficher_image()
 
 def revenir_au_point_de_depart():
-    global photo_affichee, historique, indice_historique
+    global photo_affichee, historique, indice_historique, slider_luminosite, slider_contraste
     if photo_originale:
         photo_affichee = photo_originale.copy()
         historique = [photo_affichee.copy()]
         indice_historique = 0
+        # Réinitialiser les sliders
+        slider_luminosite.set(0)
+        slider_contraste.set(0)
         afficher_image()
 
 def sauvegarder_image():
@@ -98,10 +104,9 @@ def charger_une_seconde_image():
 def correction_luminosite(valeur):
     global photo_affichee
     gamma = float(valeur)
-    image_np = np.array(photo_originale).astype(np.float32)
-    max_value = float(np.iinfo(image_np.dtype).max)
-    facteur_gamma = gamma
-    image_gamma = np.power(image_np / max_value, facteur_gamma) * max_value
+    image_np = np.array(photo_affichee).astype(np.float32)
+    # Appliquer la correction gamma sur chaque canal
+    image_gamma = np.power(image_np / 255.0, gamma) * 255.0
     image_gamma = np.clip(image_gamma, 0, 255).astype(np.uint8)
     photo_affichee = Image.fromarray(image_gamma)
     afficher_image()
@@ -109,7 +114,7 @@ def correction_luminosite(valeur):
 def correction_contraste(valeur):
     global photo_affichee
     facteur = float(valeur)
-    image_np = np.array(photo_originale).astype(np.float32)
+    image_np = np.array(photo_affichee).astype(np.float32)
     moyenne = np.mean(image_np, axis=(0, 1), keepdims=True)
     contraste = moyenne + facteur * (image_np - moyenne)
     contraste = np.clip(contraste, 0, 255).astype(np.uint8)
@@ -159,11 +164,19 @@ def lancer_interface():
     image_label = tk.Label(fenetre)
     image_label.pack()
 
+    # Label Luminosité
+    luminosite_label = tk.Label(fenetre, text="Luminosité")
+    luminosite_label.pack()
+
     # Slider Luminosité
     slider_luminosite = tk.Scale(fenetre, from_=-2.0, to=2.0, orient=tk.HORIZONTAL, length=200,
                                  resolution=0.1, command=correction_luminosite)
     slider_luminosite.set(0)  # Valeur neutre
     slider_luminosite.pack(pady=10)
+
+    # Label Contraste
+    contraste_label = tk.Label(fenetre, text="Contraste")
+    contraste_label.pack()
 
     # Slider Contraste
     slider_contraste = tk.Scale(fenetre, from_=-2.0, to=2.0, orient=tk.HORIZONTAL, length=200,
