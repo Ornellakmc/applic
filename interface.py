@@ -51,7 +51,7 @@ def appliquer_fusion():
         if image1.size != image2.size:
             image2 = image2.resize(image1.size)
 
-        resultat = filtre_fusion(image1, image2)  # Assure-toi que cette fonction existe dans filtres.py
+        resultat = filtre_fusion(image1, image2)  # Fonction de filtres.py
         photo_affichee = resultat
         historique = historique[:indice_historique + 1]
         historique.append(photo_affichee.copy())
