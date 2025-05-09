@@ -220,7 +220,8 @@ def correction_luminosite(valeur):
         raise TypeError(f"Unsupported image dtype: {dtype}")
 
     facteur_gamma = gamma
-    image_gamma = np.power(image_np / 255.0, facteur_gamma) * 255.0
+    epsilon = 1e-8
+    image_gamma = np.power((image_np / 255.0) + epsilon, facteur_gamma) * 255.0
     image_gamma = np.clip(image_gamma, 0, 255).astype(np.uint8)
     photo_affichee = Image.fromarray(image_gamma)
     afficher_image()
