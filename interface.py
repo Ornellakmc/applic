@@ -211,7 +211,14 @@ def correction_luminosite(valeur):
     global photo_affichee
     gamma = float(valeur)
     image_np = np.array(photo_originale).astype(np.float32)
-    max_value = float(np.iinfo(image_np.dtype).max)
+    dtype = image_np.dtype
+    if np.issubdtype(dtype, np.integer):
+        max_value = float(np.iinfo(dtype).max)
+    elif np.issubdtype(dtype, np.floating):
+        max_value = float(np.finfo(dtype).max)
+    else:
+        raise TypeError(f"Unsupported image dtype: {dtype}")
+
     facteur_gamma = gamma
     image_gamma = np.power(image_np / 255.0, facteur_gamma) * 255.0
     image_gamma = np.clip(image_gamma, 0, 255).astype(np.uint8)
