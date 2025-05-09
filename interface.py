@@ -174,9 +174,9 @@ def lancer_interface():
     label_luminosite = tk.Label(fenetre, text="Luminosité")
     label_luminosite.pack()
 
-    # Slider Luminosité
-    slider_luminosite = tk.Scale(fenetre, from_=-2.0, to=2.0, orient=tk.HORIZONTAL, length=200,
-                                 resolution=0.1, command=correction_luminosite)
+    # Slider Luminosité - plage réduite
+    slider_luminosite = tk.Scale(fenetre, from_=-0.5, to=0.5, orient=tk.HORIZONTAL, length=200,
+                                 resolution=0.01, command=correction_luminosite)
     slider_luminosite.set(0)  # Valeur neutre
     slider_luminosite.pack(pady=5)  # Réduire l'espace entre les éléments
 
@@ -184,15 +184,19 @@ def lancer_interface():
     label_contraste = tk.Label(fenetre, text="Contraste")
     label_contraste.pack()
 
-    # Slider Contraste
-    slider_contraste = tk.Scale(fenetre, from_=-2.0, to=2.0, orient=tk.HORIZONTAL, length=200,
-                                resolution=0.1, command=correction_contraste)
+    # Slider Contraste - plage réduite
+    slider_contraste = tk.Scale(fenetre, from_=-0.5, to=0.5, orient=tk.HORIZONTAL, length=200,
+                                resolution=0.01, command=correction_contraste)
     slider_contraste.set(0)  # Valeur neutre
     slider_contraste.pack(pady=5)  # Réduire l'espace entre les éléments
 
     # Bouton Retour au début
     bouton_retour = tk.Button(fenetre, text="Retour au début", command=revenir_au_debut)
     bouton_retour.pack(pady=10)  # Ajouter le bouton en dessous des sliders
+
+    # Bouton pour charger la première image
+    bouton_charger_premiere_image = tk.Button(fenetre, text="Charger la première image", command=ouvrir_image)
+    bouton_charger_premiere_image.pack(pady=10)  # Ajouter ce bouton avant de fusionner les images
 
     # Bouton pour charger une seconde image
     bouton_charger_second_image = tk.Button(fenetre, text="Charger une seconde image", command=charger_une_seconde_image)
@@ -203,35 +207,23 @@ def lancer_interface():
 
     fenetre.mainloop()
 
-def revenir_au_debut():
-    global photo_affichee, historique, indice_historique
-    if photo_originale:
-        photo_affichee = photo_originale.copy()  # Réinitialiser l'image à son état d'origine
-        historique = [photo_affichee.copy()]  # Réinitialiser l'historique
-        indice_historique = 0  # Remettre l'indice à zéro
-        afficher_image()  # Afficher l'image initiale
+def correction_luminosite(valeur):
+    global photo_affichee
+    gamma = float(valeur)
+    image_np = np.array(photo_originale).astype(np.float32)
+    max_value = float(np.iinfo(image_np.dtype).max)
+    facteur_gamma = gamma
+    image_gamma = np.power(image_np / 255.0, facteur_gamma) * 255.0
+    image_gamma = np.clip(image_gamma, 0, 255).astype(np.uint8)
+    photo_affichee = Image.fromarray(image_gamma)
+    afficher_image()
 
-def filtre_fusion_images():
-    global photo_originale, photo_secondaire, photo_affichee
-    if photo_originale and photo_secondaire:
-        if photo_originale.size == photo_secondaire.size:
-            alpha = 0.5  # Poids des deux images
-            image1_np = np.array(photo_originale).astype(np.float32)
-            image2_np = np.array(photo_secondaire).astype(np.float32)
-            
-            # Fusionner les deux images
-            fusion = (alpha * image1_np + (1 - alpha) * image2_np).astype(np.uint8)
-            
-            # Mettre à jour l'image affichée avec la fusion
-            photo_affichee = Image.fromarray(fusion)
-            afficher_image()
-        else:
-            messagebox.showerror("Erreur", "Les deux images doivent avoir la même taille.")
-    else:
-        messagebox.showerror("Erreur", "Assurez-vous d'avoir chargé deux images.")
-
-def charger_une_seconde_image():
-    global photo_secondaire
-    chemin = filedialog.askopenfilename(title="Choisir une image à fusionner", filetypes=[("Images", "*.jpg *.png *.jpeg")])
-    if chemin:
-        photo_secondaire = Image.open(chemin).convert("RGB")
+def correction_contraste(valeur):
+    global photo_affichee
+    facteur = float(valeur)
+    image_np = np.array(photo_originale).astype(np.float32)
+    moyenne = np.mean(image_np, axis=(0, 1), keepdims=True)
+    contraste = moyenne + facteur * (image_np - moyenne)
+    contraste = np.clip(contraste, 0, 255).astype(np.uint8)
+    photo_affichee = Image.fromarray(contraste)
+    afficher_image()
