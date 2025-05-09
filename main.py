@@ -1,4 +1,8 @@
-from interface import lancer_interface
+from interface import fenetre
+from filtres import activer_filtres
 
-if __name__ == '__main__':
-    lancer_interface()
+def main():
+    fenetre.mainloop()
+
+if __name__ == "__main__":
+    main()
