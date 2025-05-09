@@ -185,7 +185,7 @@ def lancer_interface():
     filtre_menu.add_command(label="Contraste", command=lambda: appliquer_filtre(filtre_contraste))
     filtre_menu.add_command(label="Flou Gaussien", command=lambda: appliquer_filtre(filtre_flou_gaussien))
     filtre_menu.add_command(label="Détection de Bords", command=lambda: appliquer_filtre(filtre_detection_bords))
-    filtre_menu.add_command(label="Fusion d'Images", command=lambda: appliquer_fusion())
+    filtre_menu.add_command(label="Fusion d'Images", command=appliquer_fusion)
     menu.add_cascade(label="Filtres", menu=filtre_menu)
 
     # Zone d'affichage de l'image
