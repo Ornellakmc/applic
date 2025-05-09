@@ -194,10 +194,6 @@ def lancer_interface():
     bouton_retour = tk.Button(fenetre, text="Retour au début", command=revenir_au_debut)
     bouton_retour.pack(pady=10)  # Ajouter le bouton en dessous des sliders
 
-    # Bouton pour charger une seconde image
-    bouton_charger_second_image = tk.Button(fenetre, text="Charger une seconde image", command=charger_une_seconde_image)
-    bouton_charger_second_image.pack(pady=10)  # Ajouter ce bouton avant de fusionner les images
-
     print("Interface prête.")
     charger_image_par_defaut()
 
@@ -215,7 +211,7 @@ def filtre_fusion_images():
     global photo_originale, photo_secondaire, photo_affichee
     if photo_originale and photo_secondaire:
         if photo_originale.size == photo_secondaire.size:
-            alpha = 0.5  # Poids des deux images
+            alpha = 0.5  # Peut être ajusté pour définir le poids de chaque image
             image1_np = np.array(photo_originale).astype(np.float32)
             image2_np = np.array(photo_secondaire).astype(np.float32)
             
@@ -235,3 +231,6 @@ def charger_une_seconde_image():
     chemin = filedialog.askopenfilename(title="Choisir une image à fusionner", filetypes=[("Images", "*.jpg *.png *.jpeg")])
     if chemin:
         photo_secondaire = Image.open(chemin).convert("RGB")
+
+# Autres fonctions comme ouvrir_image(), sauvegarder_image(), correction_luminosite() et correction_contraste() doivent rester les mêmes.
+
