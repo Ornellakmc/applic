@@ -191,7 +191,7 @@ def lancer_interface():
     slider_contraste.pack(pady=5)  # Réduire l'espace entre les éléments
 
     # Bouton Retour au début
-    bouton_retour = tk.Button(fenetre, text="Retour au début", command=revenir_au_debut)
+    bouton_retour = tk.Button(fenetre, text="Retour au début", command=revenir_au_point_de_depart)
     bouton_retour.pack(pady=10)  # Ajouter le bouton en dessous des sliders
 
     # Bouton pour charger la première image
