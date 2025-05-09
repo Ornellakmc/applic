@@ -1,4 +1,5 @@
 import tkinter as tk
+import numpy as np
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import os
