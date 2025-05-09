@@ -166,35 +166,35 @@ def lancer_interface():
     filtre_menu.add_command(label="Fusion d'Images", command=lambda: appliquer_filtre(filtre_fusion))
     menu.add_cascade(label="Filtres", menu=filtre_menu)
 
-    # Zone d'affichage
+    # Zone d'affichage de l'image
     image_label = tk.Label(fenetre)
     image_label.pack()
-
-    # Label Luminosité
-    luminosite_label = tk.Label(fenetre, text="Luminosité")
-    luminosite_label.pack()
 
     # Slider Luminosité
     slider_luminosite = tk.Scale(fenetre, from_=-2.0, to=2.0, orient=tk.HORIZONTAL, length=200,
                                  resolution=0.1, command=correction_luminosite)
     slider_luminosite.set(0)  # Valeur neutre
-    slider_luminosite.pack(pady=10)
-
-    # Label Contraste
-    contraste_label = tk.Label(fenetre, text="Contraste")
-    contraste_label.pack()
+    slider_luminosite.pack(pady=5)  # Réduire l'espace entre les éléments
 
     # Slider Contraste
     slider_contraste = tk.Scale(fenetre, from_=-2.0, to=2.0, orient=tk.HORIZONTAL, length=200,
                                 resolution=0.1, command=correction_contraste)
     slider_contraste.set(0)  # Valeur neutre
-    slider_contraste.pack(pady=10)
+    slider_contraste.pack(pady=5)  # Réduire l'espace entre les éléments
 
-    # Bouton Revenir au point de départ
-    bouton_revenir = tk.Button(fenetre, text="Revenir au point de départ", command=revenir_au_point_de_depart)
-    bouton_revenir.pack(pady=10)
+    # Bouton Retour au début
+    bouton_retour = tk.Button(fenetre, text="Retour au début", command=revenir_au_debut)
+    bouton_retour.pack(pady=10)  # Ajouter le bouton en dessous des sliders
 
     print("Interface prête.")
     charger_image_par_defaut()
 
     fenetre.mainloop()
+
+def revenir_au_debut():
+    global photo_affichee, historique, indice_historique
+    if photo_originale:
+        photo_affichee = photo_originale.copy()  # Réinitialiser l'image à son état d'origine
+        historique = [photo_affichee.copy()]  # Réinitialiser l'historique
+        indice_historique = 0  # Remettre l'indice à zéro
+        afficher_image()  # Afficher l'image initiale
