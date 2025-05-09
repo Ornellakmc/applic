@@ -1,34 +1,17 @@
-# filtres.py
 import numpy as np
-from PIL import Image
 from scipy.signal import convolve2d
-from scipy.ndimage import gaussian_filter
+from scipy.ndimage import gaussian_filter, sobel
 
 def filtre_flou_uniforme(image):
     matrice = np.array(image).astype(np.float32)
     noyau = np.ones((5, 5)) / 25
     resultats = []
     for canal in range(3):
-        canal_filtre = convolve2d(matrice[:, :, canal], noyau, mode='same', boundary='symm')
-        canal_filtre = np.clip(canal_filtre, 0, 255)
-        resultats.append(canal_filtre)
+        canal_filtré = convolve2d(matrice[:, :, canal], noyau, mode='same', boundary='symm')
+        canal_filtré = np.clip(canal_filtré, 0, 255)
+        resultats.append(canal_filtré)
     image_filtrée = np.stack(resultats, axis=2).astype(np.uint8)
     return Image.fromarray(image_filtrée)
-
-def filtre_flou_gaussien(image, sigma=1):
-    image_np = np.array(image).astype(np.float32)
-    floue = gaussian_filter(image_np, sigma=(sigma, sigma, 0))
-    return Image.fromarray(np.clip(floue, 0, 255).astype(np.uint8))
-
-def filtre_detection_bords(image):
-    image_np = np.array(image.convert("L"))  # convert to grayscale
-    sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
-    sobel_y = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]])
-    gx = convolve2d(image_np, sobel_x, mode='same', boundary='symm')
-    gy = convolve2d(image_np, sobel_y, mode='same', boundary='symm')
-    g = np.sqrt(gx**2 + gy**2)
-    g = np.clip(g, 0, 255).astype(np.uint8)
-    return Image.fromarray(np.stack((g,)*3, axis=-1))
 
 def filtre_niveaux_de_gris(image):
     image_np = np.array(image)
@@ -57,16 +40,34 @@ def filtre_contraste(image, facteur=1.5):
     contraste = np.clip(contraste, 0, 255).astype(np.uint8)
     return Image.fromarray(contraste)
 
-def filtre_fusion(image1, image2, alpha=0.5):
-    np1 = np.array(image1).astype(np.float32)
-    np2 = np.array(image2.resize(image1.size)).astype(np.float32)
-    fusion = alpha * np1 + (1 - alpha) * np2
-    return Image.fromarray(np.clip(fusion, 0, 255).astype(np.uint8))
+def filtre_flou_gaussien(image, sigma=1):
+    image_np = np.array(image)
+    result = np.zeros_like(image_np)
+    
+    for i in range(3):  # Traiter les 3 canaux de couleur (RGB)
+        result[..., i] = gaussian_filter(image_np[..., i], sigma=sigma)
+    
+    return Image.fromarray(result)
 
-def filtre_gamma(image, gamma):
-    image_np = np.array(image).astype(np.float32)
-    max_value = float(np.iinfo(image_np.dtype).max)
-    image_np = image_np / max_value
-    image_np = np.power(image_np, gamma)
-    image_np = np.clip(image_np * 255, 0, 255).astype(np.uint8)
-    return Image.fromarray(image_np)
+def filtre_detection_bords(image):
+    image_np = np.array(image)
+    result = np.zeros_like(image_np)
+    
+    for i in range(3):  # Appliquer le filtre de Sobel sur chaque canal
+        grad_x = sobel(image_np[..., i], axis=0, mode='nearest')
+        grad_y = sobel(image_np[..., i], axis=1, mode='nearest')
+        result[..., i] = np.hypot(grad_x, grad_y)  # Calcul du gradient
+        result[..., i] = np.clip(result[..., i], 0, 255)
+    
+    return Image.fromarray(result.astype(np.uint8))
+
+def filtre_fusion(image1, image2, alpha=0.5):
+    image1_np = np.array(image1)
+    image2_np = np.array(image2)
+    
+    if image1_np.shape != image2_np.shape:
+        raise ValueError("Les deux images doivent avoir la même taille.")
+    
+    fusion = (alpha * image1_np + (1 - alpha) * image2_np).astype(np.uint8)
+    
+    return Image.fromarray(fusion)

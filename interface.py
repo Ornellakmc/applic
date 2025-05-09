@@ -1,26 +1,25 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
+import os
 from filtres import (
     filtre_flou_uniforme,
-    filtre_flou_gaussien,
     filtre_niveaux_de_gris,
     filtre_negatif,
     filtre_sepia,
     filtre_contraste,
+    filtre_flou_gaussien,
     filtre_detection_bords,
-    filtre_fusion,
-    filtre_gamma
+    filtre_fusion
 )
-import os
 
 # Variables globales
 photo_originale = None
 photo_affichee = None
+photo_secondaire = None
 historique = []
 indice_historique = -1
 image_label = None
-dialogue_effet = None
 
 def afficher_image():
     global image_label, photo_affichee
@@ -82,71 +81,35 @@ def charger_image_par_defaut():
     else:
         print("Aucune image par défaut trouvée.")
 
-# --- Gamma UI ---
-def ouvrir_dialogue_gamma():
-    global dialogue_effet
-    if not photo_originale:
-        return
+def charger_une_seconde_image():
+    global photo_secondaire
+    chemin = filedialog.askopenfilename(title="Choisir une image à fusionner", filetypes=[("Images", "*.jpg *.png *.jpeg")])
+    if chemin:
+        photo_secondaire = Image.open(chemin).convert("RGB")
 
-    dialogue_effet = tk.Toplevel()
-    dialogue_effet.title("Luminosité (Gamma)")
-    dialogue_effet.geometry("300x150")
-    dialogue_effet.grab_set()
-
-    slider = tk.Scale(dialogue_effet, from_=0.1, to=3.0,
-                      orient=tk.HORIZONTAL, length=200,
-                      resolution=0.1, digits=2,
-                      command=correction_gamma)
-    slider.set(1.0)
-    slider.pack(pady=20)
-
-    frame_boutons = tk.Frame(dialogue_effet)
-    frame_boutons.pack(side=tk.BOTTOM, pady=10)
-
-    bouton_appliquer = tk.Button(frame_boutons, text="Appliquer", command=applique_effet)
-    bouton_appliquer.pack(side=tk.LEFT, padx=10)
-
-    bouton_annuler = tk.Button(frame_boutons, text="Annuler", command=annule_effet)
-    bouton_annuler.pack(side=tk.LEFT, padx=10)
-
-def correction_gamma(valeur):
-    global photo_affichee, photo_originale
+def correction_luminosite(valeur):
+    global photo_affichee
     gamma = float(valeur)
-    photo_affichee = filtre_gamma(photo_originale, gamma)
+    image_np = np.array(photo_originale).astype(np.float32)
+    max_value = float(np.iinfo(image_np.dtype).max)
+    facteur_gamma = gamma
+    image_gamma = np.power(image_np / max_value, facteur_gamma) * max_value
+    image_gamma = np.clip(image_gamma, 0, 255).astype(np.uint8)
+    photo_affichee = Image.fromarray(image_gamma)
     afficher_image()
 
-def applique_effet():
-    global photo_originale, photo_affichee, dialogue_effet, historique, indice_historique
-    photo_originale = photo_affichee.copy()
-    historique.append(photo_affichee.copy())
-    indice_historique += 1
-    dialogue_effet.destroy()
-
-def annule_effet():
-    global photo_affichee, photo_originale, dialogue_effet
-    photo_affichee = photo_originale.copy()
-    afficher_image()
-    dialogue_effet.destroy()
-
-# --- Fusion ---
-def appliquer_fusion():
-    global photo_affichee, historique, indice_historique
-
-    chemin = filedialog.askopenfilename(title="Choisir une deuxième image", filetypes=[("Images", "*.jpg *.png *.jpeg")])
-    if not chemin:
-        return
-
-    image2 = Image.open(chemin).convert("RGB").resize(photo_affichee.size)
-    fusion = filtre_fusion(photo_affichee, image2)
-    historique = historique[:indice_historique + 1]
-    photo_affichee = fusion
-    historique.append(photo_affichee.copy())
-    indice_historique += 1
+def correction_contraste(valeur):
+    global photo_affichee
+    facteur = float(valeur)
+    image_np = np.array(photo_originale).astype(np.float32)
+    moyenne = np.mean(image_np, axis=(0, 1), keepdims=True)
+    contraste = moyenne + facteur * (image_np - moyenne)
+    contraste = np.clip(contraste, 0, 255).astype(np.uint8)
+    photo_affichee = Image.fromarray(contraste)
     afficher_image()
 
-# --- Interface principale ---
 def lancer_interface():
-    global image_label
+    global image_label, slider_luminosite, slider_contraste
 
     fenetre = tk.Tk()
     fenetre.title("UVSQolor")
@@ -175,19 +138,30 @@ def lancer_interface():
     # Menu Filtres
     filtre_menu = tk.Menu(menu, tearoff=0)
     filtre_menu.add_command(label="Flou uniforme", command=lambda: appliquer_filtre(filtre_flou_uniforme))
-    filtre_menu.add_command(label="Flou gaussien", command=lambda: appliquer_filtre(filtre_flou_gaussien))
     filtre_menu.add_command(label="Niveaux de gris", command=lambda: appliquer_filtre(filtre_niveaux_de_gris))
     filtre_menu.add_command(label="Négatif", command=lambda: appliquer_filtre(filtre_negatif))
     filtre_menu.add_command(label="Sépia", command=lambda: appliquer_filtre(filtre_sepia))
     filtre_menu.add_command(label="Contraste", command=lambda: appliquer_filtre(filtre_contraste))
-    filtre_menu.add_command(label="Détection de bords", command=lambda: appliquer_filtre(filtre_detection_bords))
-    filtre_menu.add_command(label="Luminosité (Gamma)", command=ouvrir_dialogue_gamma)
-    filtre_menu.add_command(label="Fusion d’images", command=appliquer_fusion)
+    filtre_menu.add_command(label="Flou Gaussien", command=lambda: appliquer_filtre(filtre_flou_gaussien))
+    filtre_menu.add_command(label="Détection de Bords", command=lambda: appliquer_filtre(filtre_detection_bords))
+    filtre_menu.add_command(label="Fusion d'Images", command=lambda: appliquer_filtre(filtre_fusion))
     menu.add_cascade(label="Filtres", menu=filtre_menu)
 
     # Zone d'affichage
     image_label = tk.Label(fenetre)
     image_label.pack()
+
+    # Slider Luminosité
+    slider_luminosite = tk.Scale(fenetre, from_=-2.0, to=2.0, orient=tk.HORIZONTAL, length=200,
+                                 resolution=0.1, command=correction_luminosite)
+    slider_luminosite.set(0)  # Valeur neutre
+    slider_luminosite.pack(pady=10)
+
+    # Slider Contraste
+    slider_contraste = tk.Scale(fenetre, from_=-2.0, to=2.0, orient=tk.HORIZONTAL, length=200,
+                                resolution=0.1, command=correction_contraste)
+    slider_contraste.set(0)  # Valeur neutre
+    slider_contraste.pack(pady=10)
 
     print("Interface prête.")
     charger_image_par_defaut()
