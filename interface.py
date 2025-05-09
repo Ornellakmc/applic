@@ -163,18 +163,26 @@ def lancer_interface():
     filtre_menu.add_command(label="Contraste", command=lambda: appliquer_filtre(filtre_contraste))
     filtre_menu.add_command(label="Flou Gaussien", command=lambda: appliquer_filtre(filtre_flou_gaussien))
     filtre_menu.add_command(label="Détection de Bords", command=lambda: appliquer_filtre(filtre_detection_bords))
-    filtre_menu.add_command(label="Fusion d'Images", command=lambda: appliquer_filtre(filtre_fusion))
+    filtre_menu.add_command(label="Fusion d'Images", command=filtre_fusion_images)
     menu.add_cascade(label="Filtres", menu=filtre_menu)
 
     # Zone d'affichage de l'image
     image_label = tk.Label(fenetre)
     image_label.pack()
 
+    # Ajouter un label pour Luminosité
+    label_luminosite = tk.Label(fenetre, text="Luminosité")
+    label_luminosite.pack()
+
     # Slider Luminosité
     slider_luminosite = tk.Scale(fenetre, from_=-2.0, to=2.0, orient=tk.HORIZONTAL, length=200,
                                  resolution=0.1, command=correction_luminosite)
     slider_luminosite.set(0)  # Valeur neutre
     slider_luminosite.pack(pady=5)  # Réduire l'espace entre les éléments
+
+    # Ajouter un label pour Contraste
+    label_contraste = tk.Label(fenetre, text="Contraste")
+    label_contraste.pack()
 
     # Slider Contraste
     slider_contraste = tk.Scale(fenetre, from_=-2.0, to=2.0, orient=tk.HORIZONTAL, length=200,
@@ -198,3 +206,31 @@ def revenir_au_debut():
         historique = [photo_affichee.copy()]  # Réinitialiser l'historique
         indice_historique = 0  # Remettre l'indice à zéro
         afficher_image()  # Afficher l'image initiale
+
+def filtre_fusion_images():
+    global photo_originale, photo_secondaire, photo_affichee
+    if photo_originale and photo_secondaire:
+        if photo_originale.size == photo_secondaire.size:
+            alpha = 0.5  # Peut être ajusté pour définir le poids de chaque image
+            image1_np = np.array(photo_originale).astype(np.float32)
+            image2_np = np.array(photo_secondaire).astype(np.float32)
+            
+            # Fusionner les deux images
+            fusion = (alpha * image1_np + (1 - alpha) * image2_np).astype(np.uint8)
+            
+            # Mettre à jour l'image affichée avec la fusion
+            photo_affichee = Image.fromarray(fusion)
+            afficher_image()
+        else:
+            messagebox.showerror("Erreur", "Les deux images doivent avoir la même taille.")
+    else:
+        messagebox.showerror("Erreur", "Assurez-vous d'avoir chargé deux images.")
+
+def charger_une_seconde_image():
+    global photo_secondaire
+    chemin = filedialog.askopenfilename(title="Choisir une image à fusionner", filetypes=[("Images", "*.jpg *.png *.jpeg")])
+    if chemin:
+        photo_secondaire = Image.open(chemin).convert("RGB")
+
+# Autres fonctions comme ouvrir_image(), sauvegarder_image(), correction_luminosite() et correction_contraste() doivent rester les mêmes.
+
