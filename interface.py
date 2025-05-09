@@ -104,12 +104,18 @@ def charger_une_seconde_image():
 def correction_luminosite(valeur):
     global photo_affichee
     gamma = float(valeur)
+    
+    if gamma == 0:
+        # Ne rien faire si gamma est égal à zéro
+        return
+    
     image_np = np.array(photo_affichee).astype(np.float32)
-    # Appliquer la correction gamma sur chaque canal
-    image_gamma = np.power(image_np / 255.0, gamma) * 255.0
+    # Appliquer la correction gamma sur chaque canal, en évitant la division par zéro
+    image_gamma = np.power(np.clip(image_np / 255.0, 1e-10, 1), gamma) * 255.0
     image_gamma = np.clip(image_gamma, 0, 255).astype(np.uint8)
     photo_affichee = Image.fromarray(image_gamma)
     afficher_image()
+
 
 def correction_contraste(valeur):
     global photo_affichee
