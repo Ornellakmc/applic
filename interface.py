@@ -230,30 +230,25 @@ def lancer_interface():
     fenetre.mainloop()
 
 def correction_luminosite(valeur):
-    global photo_affichee
+    global photo_affichee, historique, indice_historique
     gamma = float(valeur)
-    image_np = np.array(photo_originale).astype(np.float32)
-    dtype = image_np.dtype
-    if np.issubdtype(dtype, np.integer):
-        max_value = float(np.iinfo(dtype).max)
-    elif np.issubdtype(dtype, np.floating):
-        max_value = float(np.finfo(dtype).max)
-    else:
-        raise TypeError(f"Unsupported image dtype: {dtype}")
 
-    facteur_gamma = gamma
-    epsilon = 1e-8
-    image_gamma = np.power((image_np / 255.0) + epsilon, facteur_gamma) * 255.0
-    image_gamma = np.clip(image_gamma, 0, 255).astype(np.uint8)
-    photo_affichee = Image.fromarray(image_gamma)
-    afficher_image()
+    if historique:
+        image_np = np.array(historique[indice_historique]).astype(np.float32)
+        epsilon = 1e-8
+        image_gamma = np.power(np.clip(image_np / 255.0, epsilon, 1), gamma) * 255.0
+        image_gamma = np.clip(image_gamma, 0, 255).astype(np.uint8)
+        photo_affichee = Image.fromarray(image_gamma)
+        afficher_image()
 
 def correction_contraste(valeur):
-    global photo_affichee
+    global photo_affichee, historique, indice_historique
     facteur = float(valeur)
-    image_np = np.array(photo_originale).astype(np.float32)
-    moyenne = np.mean(image_np, axis=(0, 1), keepdims=True)
-    contraste = moyenne + facteur * (image_np - moyenne)
-    contraste = np.clip(contraste, 0, 255).astype(np.uint8)
-    photo_affichee = Image.fromarray(contraste)
-    afficher_image()
+
+    if historique:
+        image_np = np.array(historique[indice_historique]).astype(np.float32)
+        moyenne = np.mean(image_np, axis=(0, 1), keepdims=True)
+        contraste = moyenne + facteur * (image_np - moyenne)
+        contraste = np.clip(contraste, 0, 255).astype(np.uint8)
+        photo_affichee = Image.fromarray(contraste)
+        afficher_image()
