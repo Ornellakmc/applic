@@ -259,8 +259,8 @@ def correction_contraste(valeur):
     if historique:
         image_np=np.array(historique[indice_historique]).astype(np.float32)
         # On calcule la moyenne de l'image (moyenne de chaque canal R, G et B)
-        moyenne=np.mean(image_np, axis=(0,1),keepdims=True)
-        # On applique la formule du contraste chaque pixel s’éloigne ou se rapproche de la moyenne selon le facteur
+        moyenne=np.mean(image_np, axis=(0,1),keepdims=True) #garde les dimensions du tableau après la moyenne.
+        # On applique la formule du contraste pour que chaque pixel s’éloigne ou se rapproche de la moyenne selon le facteur
         contraste=moyenne+facteur*(image_np-moyenne)
         contraste=np.clip(contraste, 0,255).astype(np.uint8)
         photo_affichee=Image.fromarray(contraste)
