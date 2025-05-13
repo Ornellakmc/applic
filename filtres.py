@@ -17,7 +17,7 @@ def filtre_flou_uniforme(image):
 
 def filtre_niveaux_de_gris(image):
     image_np = np.array(image)
-    gris = np.dot(image_np[..., :3], [0.299, 0.587, 0.114]).astype(np.uint8) #Transforme chaque pixel en gris en tenant compte de l’importance de chaque couleur.
+    gris = np.dot(image_np[..., :3], [0.299, 0.587, 0.114]).astype(np.uint8) #Transforme chaque pixel en gris en tenant compte de l’importance de chaque couleur. moyenne ponderer vrb
     return Image.fromarray(np.stack((gris,) * 3, axis=-1)) # # On copie le gris dans les 3 couleurs
 
 def filtre_negatif(image):
@@ -45,7 +45,7 @@ def filtre_flou_gaussien(image, sigma=1):
     image_np = np.array(image)
     result = np.zeros_like(image_np) # prepare image vide de meme taille
     for i in range(3):  # Pour chaque couleur RGB
-        result[..., i] = gaussian_filter(image_np[..., i], sigma=sigma) #application du flou doux
+        result[..., i] = gaussian_filter(image_np[..., i], sigma=sigma) #application du flou doux sigma determine niveau flou
     return Image.fromarray(result)
 
 def filtre_vert(image):
@@ -59,7 +59,7 @@ def filtre_detection_bords(image):
     image_np = np.array(image)
     result = np.zeros_like(image_np) #prepare image vide meme taille
     for i in range(3): #pour chaque couleur
-        grad_x = sobel(image_np[..., i], axis=0, mode='nearest') #changemnt vertical
+        grad_x = sobel(image_np[..., i], axis=0, mode='nearest') #changemnt vertical traite pixel de bords
         grad_y = sobel(image_np[..., i], axis=1, mode='nearest') #changemnt horizontal
         magnitude = np.hypot(grad_x, grad_y) #force du changement total (bords)
         result[..., i] = np.clip(magnitude, 0, 255) #lim 0 255
@@ -72,5 +72,5 @@ def filtre_fusion(image1, image2=None, alpha=0.5):
     image2_np = np.array(image2) #idem image 2
     if image1_np.shape != image2_np.shape:
         raise ValueError("Les deux images doivent avoir la même taille.") #verif des tailles
-    fusion = (alpha * image1_np + (1 - alpha) * image2_np).astype(np.uint8) #melange des 2 images 
+    fusion = (alpha * image1_np + (1 - alpha) * image2_np).astype(np.uint8) #melange des 2 images controle intensite alpha
     return Image.fromarray(fusion)
