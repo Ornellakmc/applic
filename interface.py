@@ -192,7 +192,7 @@ def lancer_interface():
     filtre_menu.add_command(label="Contraste", command=lambda: appliquer_filtre(filtre_contraste))
     filtre_menu.add_command(label="Flou Gaussien", command=lambda: appliquer_filtre(filtre_flou_gaussien))
     filtre_menu.add_command(label="Filtre Vert", command=lambda: appliquer_filtre(filtre_vert))
-    filtre_menu.add_command(label="Détection de Bords", command=lambda: appliquer_filtre(filtre_detection_bords))
+    filtre_menu.add_command(label="Détection de Bords", command=lambda: appliquer_filtre(filtre_detection_bords))# lamba fonction anonyme
     filtre_menu.add_command(label="Fusion d'Images", command=appliquer_fusion)
     menu.add_cascade(label="Filtres", menu=filtre_menu)
 
@@ -200,18 +200,18 @@ def lancer_interface():
     image_label=tk.Label(fenetre)
     image_label.pack()
 
-    # ajt un label pour Luminosité
+    # ajt lecrit pour Luminosité
     label_luminosite=tk.Label(fenetre, text="Luminosité") #txt curseur luminosité
     label_luminosite.pack()
 
     # Slider Luminosité - plage réduite
     #curseur luminosté
-    slider_luminosite=tk.Scale(fenetre,from_=-0.5,to=0.5,orient=tk.HORIZONTAL,length=200,
+    slider_luminosite=tk.Scale(fenetre,from_=-0.5,to=0.5,orient=tk.HORIZONTAL,length=200, # widget qui cree slider
                                  resolution=0.01, command=correction_luminosite)
     slider_luminosite.set(0)  # Valeur neutre 0
     slider_luminosite.pack(pady=5)  # Réduire l'espace entre les éléments
 
-    # ajt un label pour Contraste
+    # ajt lecrit pour Contraste
     label_contraste=tk.Label(fenetre, text="Contraste") #txt curseur contraste
     label_contraste.pack()
 
@@ -254,7 +254,7 @@ def correction_luminosite(valeur):
 
 def correction_contraste(valeur):
     global photo_affichee, historique, indice_historique
-    facteur=float(valeur)
+    facteur=float(valeur)# convertit  valeur du curseur texte en nombre décimal float
 
     if historique:
         image_np=np.array(historique[indice_historique]).astype(np.float32)
