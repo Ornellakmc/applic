@@ -1,7 +1,7 @@
-import numpy as np
-from scipy.signal import convolve2d
-from scipy.ndimage import gaussian_filter, sobel
-from PIL import Image
+import numpy as np 
+from scipy.signal import convolve2d # convolution image noyau
+from scipy.ndimage import gaussian_filter, sobel #floute limage, soccupe des bords
+from PIL import Image 
 
 def filtre_flou_uniforme(image):
     matrice = np.array(image).astype(np.float32)
