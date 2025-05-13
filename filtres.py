@@ -48,6 +48,13 @@ def filtre_flou_gaussien(image, sigma=1):
         result[..., i] = gaussian_filter(image_np[..., i], sigma=sigma) #application du flou doux
     return Image.fromarray(result)
 
+def filtre_vert(image):
+    # Transforme l’image en gardant seulement la composante verte
+    image_np = np.array(image)
+    image_np[:, :, 0] = 0  # On supprime le rouge
+    image_np[:, :, 2] = 0  # On supprime le bleu
+    return Image.fromarray(image_np)
+
 def filtre_detection_bords(image):
     image_np = np.array(image)
     result = np.zeros_like(image_np) #prepare image vide meme taille
